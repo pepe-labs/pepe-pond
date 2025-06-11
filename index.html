@@ -161,16 +161,15 @@
       animation: pulse 1s ease-in-out 3;
     }
 
-    #centerLogo {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: min(40vmin, 400px);
-      opacity: 0.15;
-      pointer-events: none;
-      z-index: 1;
-      filter: brightness(1.2);
+    .loading-skeleton {
+      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s infinite;
+    }
+
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
     }
 
     #footer {
@@ -198,17 +197,6 @@
     #footer a:hover {
       color: #60a5fa;
       text-decoration: underline;
-    }
-
-    .loading-skeleton {
-      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
-    }
-
-    @keyframes loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
     }
 
     /* Responsive design */
@@ -256,7 +244,7 @@
   <div id="footer">
     <div>Frens together, change the world forever • <a href="https://x.com/Pepecoinnetwork" target="_blank" rel="noopener">@Pepecoin</a></div>
     <div style="font-size: 0.75rem; margin-top: 0.25rem; opacity: 0.7;">
-      Community Mosaic • Powered by GitHub • <span id="memberCount">0</span> members
+      Community Mosaic • Powered by Google Apps Script • <span id="memberCount">0</span> members
     </div>
   </div>
 
@@ -266,28 +254,20 @@
 // =============================================================================
 
 const CONFIG = {
-  // Replace with your GitHub username and repository name
-  GITHUB_OWNER: 'pepe-labs',
-  GITHUB_REPO: 'pepe-pond',
+  // Google Apps Script Web App URL
+  // You'll get this after deploying the Google Apps Script
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbygYm0kGdOGsnd7-FRD-G3DjKCyggx3WBzBx45xJE8/dev',
   
-  // Default avatar (store this image in your repo)
-  DEFAULT_AVATAR: './default-avatar.png',
-  
-  // Labels for GitHub Issues
-  LABELS: {
-    SUBMISSION: 'mosaic-submission',
-    PENDING: 'pending-review', 
-    APPROVED: 'approved'
-  }
+  // Default avatar
+  DEFAULT_AVATAR: 'https://via.placeholder.com/200x200/1d9bf0/ffffff?text=%40',
 };
 
 // =============================================================================
-// GITHUB ISSUES INTEGRATION
+// GOOGLE APPS SCRIPT INTEGRATION
 // =============================================================================
 
 class MosaicManager {
   constructor() {
-    this.apiBase = `https://api.github.com/repos/${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO}`;
     this.cache = new Map();
     this.renderedMembers = new Map();
   }
@@ -318,7 +298,30 @@ class MosaicManager {
     return cleaned.length > 0 ? cleaned : null;
   }
 
-  // Check if username already exists in any state
+  // Get all approved members
+  async getApprovedMembers() {
+    try {
+      const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getApproved`);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      return data.members || [];
+      
+    } catch (error) {
+      console.error('Error fetching approved members:', error);
+      return [];
+    }
+  }
+
+  // Check if username already exists
   async isDuplicate(username) {
     const normalizedUsername = username.toLowerCase();
     
@@ -327,16 +330,15 @@ class MosaicManager {
     }
 
     try {
-      const searchQuery = `repo:${CONFIG.GITHUB_OWNER}/${CONFIG.GITHUB_REPO} label:${CONFIG.LABELS.SUBMISSION} "@${normalizedUsername}" in:title`;
-      const response = await fetch(`https://api.github.com/search/issues?q=${encodeURIComponent(searchQuery)}`);
+      const response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkDuplicate&username=${encodeURIComponent(normalizedUsername)}`);
       
       if (!response.ok) {
-        console.warn('GitHub API rate limit or error, allowing submission');
+        console.warn('Could not check for duplicates, allowing submission');
         return false;
       }
       
       const data = await response.json();
-      const exists = data.total_count > 0;
+      const exists = data.exists || false;
       
       this.cache.set(normalizedUsername, exists);
       return exists;
@@ -347,102 +349,40 @@ class MosaicManager {
     }
   }
 
-  // Get all approved members
-  async getApprovedMembers() {
-    try {
-      const url = `${this.apiBase}/issues?labels=${CONFIG.LABELS.APPROVED},${CONFIG.LABELS.SUBMISSION}&state=closed&per_page=100`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.status}`);
-      }
-      
-      const issues = await response.json();
-      return issues.map(issue => this.parseIssueToMember(issue)).filter(Boolean);
-      
-    } catch (error) {
-      console.error('Error fetching approved members:', error);
-      return [];
-    }
-  }
-
-  // Parse GitHub issue to member object
-  parseIssueToMember(issue) {
-    try {
-      const titleMatch = issue.title.match(/Add @(\w+) to mosaic/i);
-      if (!titleMatch) return null;
-      
-      const username = titleMatch[1].toLowerCase();
-      const body = issue.body || '';
-      const displayNameMatch = body.match(/\*\*Display Name:\*\* (.+)/);
-      const displayName = displayNameMatch ? displayNameMatch[1].trim() : `@${username}`;
-
-      return {
-        username,
-        name: displayName,
-        avatar: `https://unavatar.io/x/${username}`,
-        submittedDate: issue.created_at,
-        approvedDate: issue.closed_at,
-        issueUrl: issue.html_url
-      };
-    } catch (error) {
-      console.error('Error parsing issue:', error);
-      return null;
-    }
-  }
-
-  // Submit new member (creates GitHub issue)
+  // Submit new member
   async submitMember(username, displayName) {
-    const issueData = {
-      title: `Add @${username} to mosaic`,
-      body: this.createIssueBody(username, displayName),
-      labels: [CONFIG.LABELS.SUBMISSION, CONFIG.LABELS.PENDING]
-    };
-
-    // Note: This creates a public issue that you can review and approve manually
-    // In production, you might want to use GitHub Apps for authentication
-    const response = await fetch(`${this.apiBase}/issues`, {
+    const response = await fetch(CONFIG.SCRIPT_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // Note: For public repos, this works without authentication
-        // The issue will be created by anonymous users
       },
-      body: JSON.stringify(issueData)
+      body: JSON.stringify({
+        action: 'submit',
+        username: username,
+        displayName: displayName,
+        timestamp: new Date().toISOString()
+      })
     });
 
     if (!response.ok) {
-      throw new Error(`Failed to create submission: ${response.status}`);
+      throw new Error(`Submission failed: ${response.status}`);
     }
 
-    // Clear cache
-    this.cache.delete(username.toLowerCase());
+    const data = await response.json();
     
-    return response.json();
-  }
-
-  createIssueBody(username, displayName) {
-    return `**Twitter/X Handle:** @${username}
-**Display Name:** ${displayName}
-**Avatar Preview:** 
-![Avatar](https://unavatar.io/x/${username})
-
-**Submitted:** ${new Date().toISOString()}
-
----
-
-**Review Checklist for Maintainers:**
-- [ ] Profile exists and is appropriate
-- [ ] No duplicate submission  
-- [ ] Follows community guidelines
-
-**To approve:** Close this issue and add the \`${CONFIG.LABELS.APPROVED}\` label.
-**To reject:** Close this issue with a comment explaining why.`;
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    
+    // Clear cache to allow checking new submissions
+    this.cache.clear();
+    
+    return data;
   }
 }
 
 // =============================================================================
-// UI MANAGEMENT
+// UI MANAGEMENT  
 // =============================================================================
 
 class MosaicUI {
@@ -492,39 +432,46 @@ class MosaicUI {
     try {
       // Check for duplicates
       if (await this.mosaicManager.isDuplicate(username)) {
-        alert(`@${username} is already in the mosaic or pending approval! 🎉`);
+        alert(`@${username} is already in the mosaic! 🎉`);
         this.highlightExistingMember(username);
         this.elements.handleInput.value = '';
         return;
       }
 
-      // Get display name from X/Twitter
+      // Get display name
       const displayName = await this.fetchDisplayName(username);
       
-      // Submit to GitHub Issues
+      // Submit via Google Apps Script
       await this.mosaicManager.submitMember(username, displayName);
       
-      alert(`Successfully submitted @${username} for review! 🚀\n\nYour submission will appear in the mosaic once approved by the maintainers.`);
+      alert(`Successfully submitted @${username}! 🚀\n\nYour profile will appear in the mosaic once approved by maintainers.`);
       this.elements.handleInput.value = '';
       
     } catch (error) {
       console.error('Submission error:', error);
-      alert(`Error submitting to mosaic: ${error.message}\n\nPlease try again or contact the maintainers.`);
+      alert(`Error submitting to mosaic: ${error.message}\n\nPlease try again.`);
     } finally {
       this.setLoading(false);
     }
   }
 
-  // Fetch display name from Twitter/X
+  // Fetch display name with fallback
   async fetchDisplayName(username) {
     try {
+      // Try to get name from X profile (may fail due to API changes)
       const response = await fetch(`https://publish.twitter.com/oembed?url=https://x.com/${username}&omit_script=1`);
-      const data = await response.json();
-      return data.author_name || `@${username}`;
+      if (response.ok) {
+        const data = await response.json();
+        if (data.author_name) {
+          return data.author_name;
+        }
+      }
     } catch (error) {
-      console.log(`Could not fetch display name for @${username}, using handle`);
-      return `@${username}`;
+      console.log('Could not fetch display name, using username');
     }
+    
+    // Fallback to username
+    return `@${username}`;
   }
 
   // Set loading state
@@ -545,6 +492,10 @@ class MosaicUI {
         this.elements.status.textContent = 'Be the first to join the mosaic!';
         return;
       }
+
+      // Clear existing members
+      this.elements.wall.innerHTML = '';
+      this.renderedMembers.clear();
 
       // Render members
       for (const member of members) {
