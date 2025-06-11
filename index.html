@@ -256,7 +256,7 @@
 const CONFIG = {
   // Google Apps Script Web App URL
   // You'll get this after deploying the Google Apps Script
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbw3dscPyna7YS03AnBqBVhzbkqYLAG4S0OKpVvZ_G-K9j30mx6eK4EDq9ncpshrjG6_/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz4DCReAFH-jtVIDBAxIqAZoGci9cNYCmNfz0iwf8f9x9f7z9WOOgasFYPV35zTy1IZ/exec',
   
   // Default avatar
   DEFAULT_AVATAR: 'default-avatar.png',
@@ -298,16 +298,10 @@ class MosaicManager {
     return cleaned.length > 0 ? cleaned : null;
   }
 
-  // Get all approved members
+  // Get all approved members using JSONP to avoid CORS
   async getApprovedMembers() {
     try {
-      const response = await fetch(`${CONFIG.SCRIPT_URL}?action=getApproved`);
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch data: ${response.status}`);
-      }
-      
-      const data = await response.json();
+      const data = await this.jsonpRequest(`${CONFIG.SCRIPT_URL}?action=getApproved`);
       
       if (data.error) {
         throw new Error(data.error);
@@ -321,7 +315,7 @@ class MosaicManager {
     }
   }
 
-  // Check if username already exists
+  // Check if username already exists using JSONP
   async isDuplicate(username) {
     const normalizedUsername = username.toLowerCase();
     
@@ -330,14 +324,7 @@ class MosaicManager {
     }
 
     try {
-      const response = await fetch(`${CONFIG.SCRIPT_URL}?action=checkDuplicate&username=${encodeURIComponent(normalizedUsername)}`);
-      
-      if (!response.ok) {
-        console.warn('Could not check for duplicates, allowing submission');
-        return false;
-      }
-      
-      const data = await response.json();
+      const data = await this.jsonpRequest(`${CONFIG.SCRIPT_URL}?action=checkDuplicate&username=${encodeURIComponent(normalizedUsername)}`);
       const exists = data.exists || false;
       
       this.cache.set(normalizedUsername, exists);
@@ -349,35 +336,53 @@ class MosaicManager {
     }
   }
 
-  // Submit new member
+  // Submit new member using JSONP
   async submitMember(username, displayName) {
-    const response = await fetch(CONFIG.SCRIPT_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'submit',
-        username: username,
-        displayName: displayName,
-        timestamp: new Date().toISOString()
-      })
+    try {
+      const data = await this.jsonpRequest(`${CONFIG.SCRIPT_URL}?action=submit&username=${encodeURIComponent(username)}&displayName=${encodeURIComponent(displayName)}&timestamp=${encodeURIComponent(new Date().toISOString())}`);
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      // Clear cache to allow checking new submissions
+      this.cache.clear();
+      
+      return data;
+    } catch (error) {
+      throw new Error(`Submission failed: ${error.message}`);
+    }
+  }
+
+  // JSONP helper function to bypass CORS
+  jsonpRequest(url) {
+    return new Promise((resolve, reject) => {
+      const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
+      
+      // Add callback parameter to URL
+      const scriptUrl = url + (url.includes('?') ? '&' : '?') + 'callback=' + callbackName;
+      
+      // Create script element
+      const script = document.createElement('script');
+      script.src = scriptUrl;
+      
+      // Set up callback
+      window[callbackName] = function(data) {
+        document.head.removeChild(script);
+        delete window[callbackName];
+        resolve(data);
+      };
+      
+      // Handle errors
+      script.onerror = function() {
+        document.head.removeChild(script);
+        delete window[callbackName];
+        reject(new Error('JSONP request failed'));
+      };
+      
+      // Add script to page
+      document.head.appendChild(script);
     });
-
-    if (!response.ok) {
-      throw new Error(`Submission failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    
-    // Clear cache to allow checking new submissions
-    this.cache.clear();
-    
-    return data;
   }
 }
 
