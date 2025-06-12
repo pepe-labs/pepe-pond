@@ -24,75 +24,72 @@
     html, body {
       margin: 0;
       height: 100%;
-      background: 
-        radial-gradient(ellipse at top, var(--water-surface) 0%, var(--water-mid) 40%, var(--water-deep) 100%),
-        linear-gradient(180deg, var(--water-deep) 0%, var(--water-mid) 30%, var(--water-surface) 70%, var(--water-light) 100%);
+      background: linear-gradient(
+        0deg,
+        #2a5a7a 0%,
+        #3d7ba3 25%,
+        #4a9cc7 50%,
+        #3d7ba3 75%,
+        #2a5a7a 100%
+      );
+      background-size: 100% 300%;
+      animation: rollingWaves 8s ease-in-out infinite;
       color: var(--text-primary);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
       overflow-x: hidden;
       min-height: 100vh;
     }
 
-    /* Animated Wave Background */
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 200%;
-      height: 100%;
-      background: 
-        radial-gradient(ellipse at 15% 20%, var(--water-foam) 0%, transparent 40%),
-        radial-gradient(ellipse at 85% 80%, var(--water-foam) 0%, transparent 40%),
-        radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 60%),
-        linear-gradient(120deg, 
-          transparent 0%, 
-          rgba(255, 255, 255, 0.08) 30%, 
-          transparent 50%, 
-          rgba(255, 255, 255, 0.06) 70%, 
-          transparent 100%
-        );
-      animation: waves 25s ease-in-out infinite;
-      z-index: 0;
-      pointer-events: none;
-    }
-
-    @keyframes waves {
+    @keyframes rollingWaves {
       0%, 100% { 
-        transform: translateX(-50%) translateY(0px) rotate(0deg);
-        opacity: 0.6;
+        background-position: 0% 0%;
       }
-      33% { 
-        transform: translateX(-45%) translateY(-10px) rotate(1deg);
-        opacity: 0.8;
-      }
-      66% { 
-        transform: translateX(-55%) translateY(5px) rotate(-1deg);
-        opacity: 0.4;
+      50% { 
+        background-position: 0% 100%;
       }
     }
 
-    /* Floating bubbles effect */
+    /* Continuous bubbles floating up */
     body::after {
       content: '';
       position: fixed;
-      top: 0;
+      bottom: 0;
       left: 0;
       width: 100%;
-      height: 100%;
+      height: 150vh;
       background-image: 
-        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1) 2px, transparent 3px),
-        radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.08) 1px, transparent 2px),
-        radial-gradient(circle at 70% 40%, rgba(255, 255, 255, 0.12) 1.5px, transparent 2.5px),
-        radial-gradient(circle at 90% 70%, rgba(255, 255, 255, 0.06) 1px, transparent 2px);
-      animation: bubbles 25s linear infinite;
-      z-index: 1;
+        radial-gradient(circle at 12% 85%, rgba(255, 255, 255, 0.25) 12px, transparent 13px),
+        radial-gradient(circle at 23% 88%, rgba(255, 255, 255, 0.15) 8px, transparent 9px),
+        radial-gradient(circle at 31% 84%, rgba(255, 255, 255, 0.3) 15px, transparent 16px),
+        radial-gradient(circle at 45% 89%, rgba(255, 255, 255, 0.2) 10px, transparent 11px),
+        radial-gradient(circle at 52% 82%, rgba(255, 255, 255, 0.18) 14px, transparent 15px),
+        radial-gradient(circle at 63% 87%, rgba(255, 255, 255, 0.22) 11px, transparent 12px),
+        radial-gradient(circle at 74% 81%, rgba(255, 255, 255, 0.28) 16px, transparent 17px),
+        radial-gradient(circle at 81% 86%, rgba(255, 255, 255, 0.16) 9px, transparent 10px),
+        radial-gradient(circle at 89% 83%, rgba(255, 255, 255, 0.24) 13px, transparent 14px),
+        radial-gradient(circle at 94% 90%, rgba(255, 255, 255, 0.19) 10px, transparent 11px),
+        radial-gradient(circle at 17% 90%, rgba(255, 255, 255, 0.21) 12px, transparent 13px),
+        radial-gradient(circle at 36% 80%, rgba(255, 255, 255, 0.17) 9px, transparent 10px),
+        radial-gradient(circle at 67% 85%, rgba(255, 255, 255, 0.26) 14px, transparent 15px),
+        radial-gradient(circle at 78% 79%, rgba(255, 255, 255, 0.14) 8px, transparent 9px),
+        radial-gradient(circle at 8% 45%, rgba(255, 255, 255, 0.20) 11px, transparent 12px),
+        radial-gradient(circle at 25% 40%, rgba(255, 255, 255, 0.16) 9px, transparent 10px),
+        radial-gradient(circle at 48% 35%, rgba(255, 255, 255, 0.23) 13px, transparent 14px),
+        radial-gradient(circle at 72% 30%, rgba(255, 255, 255, 0.18) 10px, transparent 11px),
+        radial-gradient(circle at 91% 25%, rgba(255, 255, 255, 0.21) 12px, transparent 13px);
+      background-size: 100% 150%;
+      animation: continuousBubbles 20s linear infinite;
       pointer-events: none;
+      z-index: 10;
     }
 
-    @keyframes bubbles {
-      0% { transform: translateY(100vh) rotate(0deg); }
-      100% { transform: translateY(-100vh) rotate(360deg); }
+    @keyframes continuousBubbles {
+      0% { 
+        background-position: 0% 100%;
+      }
+      100% { 
+        background-position: 0% 0%;
+      }
     }
 
     #controls {
@@ -187,7 +184,7 @@
       padding: var(--gap);
       justify-content: center;
       position: relative;
-      z-index: 10;
+      z-index: 50;
       min-height: calc(100vh - 200px);
     }
 
@@ -198,35 +195,36 @@
       background: radial-gradient(circle, rgba(255, 255, 255, 0.1), rgba(0, 100, 200, 0.2));
       overflow: hidden;
       border-radius: 50%;
-      transition: transform 0.15s ease;
+      transition: transform 0.1s ease;
       cursor: pointer;
       border: 3px solid #16532A;
       box-shadow: 
         0 4px 16px rgba(0, 0, 0, 0.3),
         0 0 0 1px rgba(22, 83, 42, 0.5);
-      animation: simpleFloat 4s ease-in-out infinite;
+      animation: simpleFloat 3s ease-in-out infinite;
+      will-change: transform;
     }
 
     @keyframes simpleFloat {
       0%, 100% { 
-        transform: translateY(0px);
+        transform: translateY(0);
       }
       50% { 
-        transform: translateY(-4px);
+        transform: translateY(-3px);
       }
     }
 
     .profile-cell:nth-child(2n) {
-      animation-delay: -1s;
+      animation-delay: -0.8s;
     }
 
     .profile-cell:nth-child(3n) {
-      animation-delay: -2s;
+      animation-delay: -1.6s;
     }
 
     .profile-cell:hover {
-      transform: scale(1.1);
-      z-index: 50;
+      transform: scale(1.05);
+      z-index: 150;
     }
 
     .profile-cell img {
@@ -280,11 +278,30 @@
       border-radius: 50%;
     }
 
+    /* Small icon styles for status */
+    .status-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0 4px;
+    }
+
+    /* Pepecoin logo for footer - rectangular, not rounded */
+    .pepecoin-icon {
+      height: 16px;
+      width: auto;
+      display: inline-block;
+      vertical-align: middle;
+      margin: 0 6px;
+    }
+
     /* Simple spawn animation */
     @keyframes randomSpawn {
       0% {
         opacity: 0;
-        transform: scale(0.5);
+        transform: scale(0.8);
       }
       100% {
         opacity: 1;
@@ -317,7 +334,7 @@
       font-size: 0.85rem;
       background: rgba(0, 40, 80, 0.9);
       color: var(--text-secondary);
-      z-index: 100;
+      z-index: 300;
       backdrop-filter: blur(15px);
       border-top: 2px solid rgba(77, 166, 255, 0.3);
       box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
@@ -404,7 +421,7 @@
   <div id="footer">
     <div>🐸 Frens floating together, making waves forever • <a href="https://x.com/Pepecoinnetwork" target="_blank" rel="noopener">@Pepecoin</a></div>
     <div style="font-size: 0.75rem; margin-top: 0.25rem; opacity: 0.8;">
-      Community Pond • Powered by Community Love • <span id="memberCount">0</span> floating frens
+      Community Pond • <a href="https://pepecoin.org" target="_blank" rel="noopener">Pepecoin.org</a> • <span id="memberCount">0</span> floating frens<img src="pepecoin.png" alt="Pepecoin" class="pepecoin-icon">
     </div>
   </div>
 
@@ -419,7 +436,7 @@ const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz4DCReAFH-jtVIDBAxIqAZoGci9cNYCmNfz0iwf8f9x9f7z9WOOgasFYPV35zTy1IZ/exec',
   
   // Default avatar
-  DEFAULT_AVATAR: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQpIi8+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzRkYTZmZiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzAwNjZjYyIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+8J+QsjwvdGV4dD48L3N2Zz4=',
+  DEFAULT_AVATAR: 'default-avatar.png',
 };
 
 // =============================================================================
@@ -654,7 +671,7 @@ class MosaicUI {
       const members = await this.mosaicManager.getApprovedMembers();
       
       if (members.length === 0) {
-        this.elements.status.textContent = 'Be the first fren to float in our pond! 🐸';
+        this.elements.status.innerHTML = 'Be the first fren to float in our pond! <img src="default-avatar.png" alt="frog" class="status-icon">';
         return;
       }
 
@@ -680,7 +697,7 @@ class MosaicUI {
       this.updateCellSize();
 
       this.updateMemberCount(members.length);
-      this.elements.status.textContent = `🌊 Welcome to the pond! ${members.length} frens floating together 🐸`;
+      this.elements.status.innerHTML = `<img src="default-avatar.png" alt="wave" class="status-icon"> Welcome to the pond! ${members.length} frens floating together <img src="default-avatar.png" alt="frog" class="status-icon">`;
       
     } catch (error) {
       console.error('Error loading members:', error);
@@ -696,19 +713,19 @@ class MosaicUI {
     cell.className = 'profile-cell loading-skeleton';
     cell.dataset.username = member.username;
     
-    // Simple random spawn animation with slight delay
-    const randomDelay = Math.random() * 2; // Random delay up to 2 seconds
+    // Random spawn animation with random delay
+    const randomDelay = Math.random() * 1.5; // Random delay up to 1.5 seconds
     cell.style.animation = `
-      randomSpawn 0.6s ease-out ${randomDelay}s both,
-      simpleFloat 4s ease-in-out infinite ${randomDelay + 0.6}s
+      randomSpawn 0.4s ease-out ${randomDelay}s both,
+      simpleFloat 3s ease-in-out infinite ${randomDelay + 0.4}s
     `;
     
     const img = document.createElement('img');
     img.alt = member.name;
     img.loading = 'lazy';
     
-    // Preload avatar with optimized source
-    const avatarUrl = member.avatar || `https://unavatar.io/twitter/${member.username}?fallback=https://api.dicebear.com/7.x/initials/svg?seed=${member.username}`;
+    // Optimized avatar source
+    const avatarUrl = member.avatar || `https://unavatar.io/twitter/${member.username}`;
     
     // Set up avatar with fallback
     img.onerror = () => {
@@ -721,11 +738,14 @@ class MosaicUI {
 
     const nameDiv = document.createElement('div');
     nameDiv.className = 'profile-name';
-    nameDiv.textContent = member.name;
+    nameDiv.innerHTML = `<a href="https://x.com/${member.username}" target="_blank" rel="noopener">@${member.username}</a>`;
 
-    // Add click handler to open X profile
-    cell.addEventListener('click', () => {
-      window.open(`https://x.com/${member.username}`, '_blank', 'noopener');
+    // Add click handler to open X profile (backup for clicking on avatar)
+    cell.addEventListener('click', (e) => {
+      // Don't trigger if clicking on the tooltip link
+      if (e.target.tagName !== 'A') {
+        window.open(`https://x.com/${member.username}`, '_blank', 'noopener');
+      }
     });
 
     cell.appendChild(img);
@@ -795,16 +815,6 @@ class MosaicUI {
 // =============================================================================
 // INITIALIZATION
 // =============================================================================
-
-// Add fade-in animation CSS
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.8) translateY(20px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
-  }
-`;
-document.head.appendChild(style);
 
 // Initialize the application
 const mosaicUI = new MosaicUI();
