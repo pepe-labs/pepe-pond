@@ -3,17 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pepecoin Community Mosaic</title>
+  <title>Pepecoin Community Pond</title>
   
   <style>
     :root{ 
-      --cell-size: 220px; 
-      --gap: 2px; 
+      --cell-size: 60px; 
+      --gap: 8px; 
       --primary-color: #1d9bf0;
-      --bg-dark: #000;
-      --bg-card: #111;
+      --water-deep: #001133;
+      --water-mid: #003366;
+      --water-surface: #004080;
+      --water-light: #0066b3;
+      --water-foam: rgba(255, 255, 255, 0.2);
       --text-primary: #fff;
-      --text-secondary: #ccc;
+      --text-secondary: #99ccff;
     }
     
     * { box-sizing: border-box; }
@@ -21,61 +24,146 @@
     html, body {
       margin: 0;
       height: 100%;
-      background: var(--bg-dark);
+      background: 
+        radial-gradient(ellipse at top, var(--water-surface) 0%, var(--water-mid) 40%, var(--water-deep) 100%),
+        linear-gradient(180deg, var(--water-deep) 0%, var(--water-mid) 30%, var(--water-surface) 70%, var(--water-light) 100%);
       color: var(--text-primary);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Animated Wave Background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 200%;
+      height: 100%;
+      background: 
+        radial-gradient(ellipse at 15% 20%, var(--water-foam) 0%, transparent 40%),
+        radial-gradient(ellipse at 85% 80%, var(--water-foam) 0%, transparent 40%),
+        radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.05) 0%, transparent 60%),
+        linear-gradient(120deg, 
+          transparent 0%, 
+          rgba(255, 255, 255, 0.08) 30%, 
+          transparent 50%, 
+          rgba(255, 255, 255, 0.06) 70%, 
+          transparent 100%
+        );
+      animation: waves 25s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    @keyframes waves {
+      0%, 100% { 
+        transform: translateX(-50%) translateY(0px) rotate(0deg);
+        opacity: 0.6;
+      }
+      33% { 
+        transform: translateX(-45%) translateY(-10px) rotate(1deg);
+        opacity: 0.8;
+      }
+      66% { 
+        transform: translateX(-55%) translateY(5px) rotate(-1deg);
+        opacity: 0.4;
+      }
+    }
+
+    /* Floating bubbles effect */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.1) 2px, transparent 3px),
+        radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.08) 1px, transparent 2px),
+        radial-gradient(circle at 70% 40%, rgba(255, 255, 255, 0.12) 1.5px, transparent 2.5px),
+        radial-gradient(circle at 90% 70%, rgba(255, 255, 255, 0.06) 1px, transparent 2px);
+      animation: bubbles 25s linear infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    @keyframes bubbles {
+      0% { transform: translateY(100vh) rotate(0deg); }
+      100% { transform: translateY(-100vh) rotate(360deg); }
     }
 
     #controls {
       display: flex;
       gap: 0.5rem;
       padding: 1rem;
-      background: var(--bg-card);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      background: rgba(0, 40, 80, 0.85);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       position: sticky;
       top: 0;
-      z-index: 10;
-      backdrop-filter: blur(10px);
+      z-index: 100;
+      backdrop-filter: blur(15px);
+      border-bottom: 2px solid rgba(77, 166, 255, 0.3);
     }
 
     #handleInput {
       flex: 1 1 auto;
       padding: 0.75rem 1rem;
-      border: 2px solid #333;
-      border-radius: 0.75rem;
-      background: #222;
+      border: 2px solid rgba(77, 166, 255, 0.3);
+      border-radius: 25px;
+      background: rgba(0, 30, 60, 0.8);
       color: var(--text-primary);
       font-size: 1rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition: all 0.3s ease;
     }
 
     #handleInput:focus {
       outline: none;
       border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.1);
+      box-shadow: 0 0 0 3px rgba(29, 155, 240, 0.2), 0 0 20px rgba(77, 166, 255, 0.3);
+      background: rgba(0, 40, 80, 0.9);
     }
 
     #addBtn {
       padding: 0.75rem 1.5rem;
       border: none;
-      border-radius: 0.75rem;
-      background: var(--primary-color);
+      border-radius: 25px;
+      background: linear-gradient(45deg, #269B4D, #2fb558);
       color: white;
       font-weight: 600;
       font-size: 1rem;
       cursor: pointer;
-      transition: all 0.2s;
-      min-width: 120px;
+      transition: all 0.3s ease;
+      min-width: 140px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #addBtn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transition: left 0.6s ease;
     }
 
     #addBtn:hover:not(:disabled) {
-      background: #1485d1;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(29, 155, 240, 0.3);
+      background: linear-gradient(45deg, #2fb558, #269B4D);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(38, 155, 77, 0.4);
+    }
+
+    #addBtn:hover:not(:disabled)::before {
+      left: 100%;
     }
 
     #addBtn:disabled {
-      background: #555;
+      background: rgba(60, 60, 60, 0.8);
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
@@ -86,8 +174,10 @@
       text-align: center;
       font-size: 0.9rem;
       color: var(--text-secondary);
-      background: rgba(17, 17, 17, 0.8);
-      backdrop-filter: blur(5px);
+      background: rgba(0, 40, 80, 0.7);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+      position: relative;
     }
 
     #wall {
@@ -96,32 +186,57 @@
       grid-template-columns: repeat(auto-fill, minmax(var(--cell-size), var(--cell-size)));
       padding: var(--gap);
       justify-content: center;
+      position: relative;
+      z-index: 10;
+      min-height: calc(100vh - 200px);
     }
 
     .profile-cell {
       position: relative;
       width: 100%;
       aspect-ratio: 1;
-      background: #222;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1), rgba(0, 100, 200, 0.2));
       overflow: hidden;
-      border-radius: 12px;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 50%;
+      transition: transform 0.15s ease;
       cursor: pointer;
+      border: 3px solid #16532A;
+      box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(22, 83, 42, 0.5);
+      animation: simpleFloat 4s ease-in-out infinite;
+    }
+
+    @keyframes simpleFloat {
+      0%, 100% { 
+        transform: translateY(0px);
+      }
+      50% { 
+        transform: translateY(-4px);
+      }
+    }
+
+    .profile-cell:nth-child(2n) {
+      animation-delay: -1s;
+    }
+
+    .profile-cell:nth-child(3n) {
+      animation-delay: -2s;
     }
 
     .profile-cell:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 25px rgba(29, 155, 240, 0.3);
-      z-index: 5;
+      transform: scale(1.1);
+      z-index: 50;
     }
 
     .profile-cell img {
       position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      inset: 3px;
+      width: calc(100% - 6px);
+      height: calc(100% - 6px);
       object-fit: cover;
-      transition: opacity 0.3s ease;
+      border-radius: 50%;
+      transition: opacity 0.2s ease;
     }
 
     .profile-name {
@@ -130,46 +245,66 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(0, 0, 0, 0.8);
+      background: radial-gradient(circle, rgba(0, 60, 120, 0.95), rgba(0, 40, 80, 0.95));
       font-weight: 600;
       text-align: center;
-      font-size: clamp(12px, calc(var(--cell-size) / 10), 18px);
+      font-size: clamp(10px, calc(var(--cell-size) / 8), 14px);
       opacity: 0;
-      transition: opacity 0.3s ease;
+      transition: all 0.4s ease;
       padding: 1rem;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
       word-break: break-word;
+      border-radius: 50%;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
 
     .profile-cell:hover .profile-name {
       opacity: 1;
+      transform: scale(1.05);
     }
 
-    @keyframes pulse {
-      0%, 100% { 
-        outline-offset: -4px;
-        outline-color: var(--primary-color);
-      }
-      50% { 
+    @keyframes ripple {
+      0% { 
         outline-offset: 0;
-        outline-color: #60a5fa;
+        outline-color: rgba(22, 83, 42, 0.8);
+      }
+      100% { 
+        outline-offset: 20px;
+        outline-color: transparent;
       }
     }
 
     .highlight {
-      outline: 4px solid var(--primary-color);
-      animation: pulse 1s ease-in-out 3;
+      animation: ripple 1s ease-out 3;
+      outline: 3px solid rgba(22, 83, 42, 0.8);
+      border-radius: 50%;
+    }
+
+    /* Simple spawn animation */
+    @keyframes randomSpawn {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
     }
 
     .loading-skeleton {
-      background: linear-gradient(90deg, #222 25%, #333 50%, #222 75%);
-      background-size: 200% 100%;
-      animation: loading 1.5s infinite;
+      background: linear-gradient(45deg, 
+        rgba(22, 83, 42, 0.2) 25%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        rgba(22, 83, 42, 0.2) 75%
+      );
+      background-size: 200% 200%;
+      animation: loading 1.5s ease-in-out infinite;
     }
 
     @keyframes loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
+      0% { background-position: 200% 200%; }
+      100% { background-position: -200% -200%; }
     }
 
     #footer {
@@ -180,28 +315,30 @@
       text-align: center;
       padding: 0.75rem;
       font-size: 0.85rem;
-      background: rgba(0, 0, 0, 0.9);
+      background: rgba(0, 40, 80, 0.9);
       color: var(--text-secondary);
-      z-index: 11;
-      backdrop-filter: blur(10px);
-      border-top: 1px solid #333;
+      z-index: 100;
+      backdrop-filter: blur(15px);
+      border-top: 2px solid rgba(77, 166, 255, 0.3);
+      box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
     }
 
     #footer a {
-      color: var(--primary-color);
+      color: var(--water-light);
       text-decoration: none;
       font-weight: 600;
-      transition: color 0.2s;
+      transition: all 0.3s ease;
     }
 
     #footer a:hover {
-      color: #60a5fa;
+      color: #ffffff;
       text-decoration: underline;
+      text-shadow: 0 0 10px rgba(128, 191, 255, 0.5);
     }
 
     /* Responsive design */
     @media (max-width: 768px) {
-      :root { --cell-size: 150px; }
+      :root { --cell-size: 50px; --gap: 6px; }
       
       #controls {
         flex-direction: column;
@@ -214,11 +351,34 @@
     }
 
     @media (max-width: 480px) {
-      :root { --cell-size: 120px; }
+      :root { --cell-size: 45px; --gap: 5px; }
       
       #controls {
         padding: 0.75rem;
       }
+    }
+
+    /* Water reflection effect on images */
+    .profile-cell img::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, 
+        transparent 40%, 
+        rgba(255, 255, 255, 0.1) 50%, 
+        transparent 60%
+      );
+      pointer-events: none;
+      border-radius: 50%;
+      animation: shimmer 4s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
     }
   </style>
 </head>
@@ -229,22 +389,22 @@
     <input 
       id="handleInput" 
       type="text" 
-      placeholder="Enter your X handle (@username) or profile URL"
+      placeholder="Enter your X handle (@username) to join the pond"
       autocomplete="off"
     />
-    <button id="addBtn">Join Mosaic</button>
+    <button id="addBtn">🌊 Join the Pond</button>
   </div>
 
-  <div id="status">Loading community mosaic...</div>
+  <div id="status">Loading floating community...</div>
 
   <!-- Mosaic grid -->
   <div id="wall"></div>
 
   <!-- Footer -->
   <div id="footer">
-    <div>Frens together, change the world forever • <a href="https://x.com/Pepecoinnetwork" target="_blank" rel="noopener">@Pepecoin</a></div>
-    <div style="font-size: 0.75rem; margin-top: 0.25rem; opacity: 0.7;">
-      Community Mosaic • Powered by Google Apps Script • <span id="memberCount">0</span> members
+    <div>🐸 Frens floating together, making waves forever • <a href="https://x.com/Pepecoinnetwork" target="_blank" rel="noopener">@Pepecoin</a></div>
+    <div style="font-size: 0.75rem; margin-top: 0.25rem; opacity: 0.8;">
+      Community Pond • Powered by Community Love • <span id="memberCount">0</span> floating frens
     </div>
   </div>
 
@@ -259,7 +419,7 @@ const CONFIG = {
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbz4DCReAFH-jtVIDBAxIqAZoGci9cNYCmNfz0iwf8f9x9f7z9WOOgasFYPV35zTy1IZ/exec',
   
   // Default avatar
-  DEFAULT_AVATAR: 'default-avatar.png',
+  DEFAULT_AVATAR: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgdmlld0JveD0iMCAwIDEwMCAxMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNTAiIGZpbGw9InVybCgjZ3JhZGllbnQpIi8+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJncmFkaWVudCIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzRkYTZmZiIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzAwNjZjYyIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjx0ZXh0IHg9IjUwIiB5PSI1NSIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjMwIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+8J+QsjwvdGV4dD48L3N2Zz4=',
 };
 
 // =============================================================================
@@ -423,7 +583,7 @@ class MosaicUI {
     const username = this.mosaicManager.extractUsername(input);
     
     if (!username) {
-      alert('Please enter a valid X handle (like @username) or profile URL');
+      alert('Please enter a valid X handle (like @username) or profile URL to join our pond! 🌊');
       return;
     }
 
@@ -437,7 +597,7 @@ class MosaicUI {
     try {
       // Check for duplicates
       if (await this.mosaicManager.isDuplicate(username)) {
-        alert(`@${username} is already in the mosaic! 🎉`);
+        alert(`@${username} is already floating in our pond! 🐸🌊`);
         this.highlightExistingMember(username);
         this.elements.handleInput.value = '';
         return;
@@ -449,12 +609,12 @@ class MosaicUI {
       // Submit via Google Apps Script
       await this.mosaicManager.submitMember(username, displayName);
       
-      alert(`Successfully submitted @${username}! 🚀\n\nYour profile will appear in the mosaic once approved by maintainers.`);
+      alert(`🌊 Successfully submitted @${username}! 🚀\n\nYour avatar will start floating in the pond once approved by our pond keepers!`);
       this.elements.handleInput.value = '';
       
     } catch (error) {
       console.error('Submission error:', error);
-      alert(`Error submitting to mosaic: ${error.message}\n\nPlease try again.`);
+      alert(`Error joining the pond: ${error.message}\n\nPlease try again! 🌊`);
     } finally {
       this.setLoading(false);
     }
@@ -482,19 +642,19 @@ class MosaicUI {
   // Set loading state
   setLoading(isLoading) {
     this.elements.addBtn.disabled = isLoading;
-    this.elements.addBtn.textContent = isLoading ? 'Submitting...' : 'Join Mosaic';
+    this.elements.addBtn.textContent = isLoading ? '🌊 Diving in...' : '🌊 Join the Pond';
     this.elements.handleInput.disabled = isLoading;
   }
 
   // Load and display approved members
   async loadMembers() {
     try {
-      this.elements.status.textContent = 'Loading community members...';
+      this.elements.status.textContent = 'Loading floating community members...';
       
       const members = await this.mosaicManager.getApprovedMembers();
       
       if (members.length === 0) {
-        this.elements.status.textContent = 'Be the first to join the mosaic!';
+        this.elements.status.textContent = 'Be the first fren to float in our pond! 🐸';
         return;
       }
 
@@ -502,31 +662,53 @@ class MosaicUI {
       this.elements.wall.innerHTML = '';
       this.renderedMembers.clear();
 
-      // Render members
-      for (const member of members) {
-        await this.renderMember(member);
-      }
+      // Randomize the order for random spawning effect
+      const shuffledMembers = [...members].sort(() => Math.random() - 0.5);
+
+      // Create document fragment for batch DOM insertion
+      const fragment = document.createDocumentFragment();
+
+      // Render all members at once for better performance
+      shuffledMembers.forEach((member, index) => {
+        this.renderMember(member, fragment, index);
+      });
+
+      // Insert all at once
+      this.elements.wall.appendChild(fragment);
+
+      // Update cell size only once after all members are added
+      this.updateCellSize();
 
       this.updateMemberCount(members.length);
-      this.elements.status.textContent = `Welcome to the community! ${members.length} members strong 💪`;
+      this.elements.status.textContent = `🌊 Welcome to the pond! ${members.length} frens floating together 🐸`;
       
     } catch (error) {
       console.error('Error loading members:', error);
-      this.elements.status.textContent = 'Error loading members. Please refresh the page.';
+      this.elements.status.textContent = 'Error loading pond members. Please refresh the page. 🌊';
     }
   }
 
   // Render individual member tile
-  async renderMember(member) {
+  renderMember(member, container = null, index = 0) {
     if (this.renderedMembers.has(member.username)) return;
 
     const cell = document.createElement('div');
     cell.className = 'profile-cell loading-skeleton';
     cell.dataset.username = member.username;
     
+    // Simple random spawn animation with slight delay
+    const randomDelay = Math.random() * 2; // Random delay up to 2 seconds
+    cell.style.animation = `
+      randomSpawn 0.6s ease-out ${randomDelay}s both,
+      simpleFloat 4s ease-in-out infinite ${randomDelay + 0.6}s
+    `;
+    
     const img = document.createElement('img');
     img.alt = member.name;
     img.loading = 'lazy';
+    
+    // Preload avatar with optimized source
+    const avatarUrl = member.avatar || `https://unavatar.io/twitter/${member.username}?fallback=https://api.dicebear.com/7.x/initials/svg?seed=${member.username}`;
     
     // Set up avatar with fallback
     img.onerror = () => {
@@ -548,13 +730,23 @@ class MosaicUI {
 
     cell.appendChild(img);
     cell.appendChild(nameDiv);
-    this.elements.wall.appendChild(cell);
+    
+    // Append to container (fragment) or wall directly
+    if (container) {
+      container.appendChild(cell);
+    } else {
+      this.elements.wall.appendChild(cell);
+    }
     
     // Set avatar source last to trigger loading
-    img.src = member.avatar;
+    img.src = avatarUrl;
     
     this.renderedMembers.set(member.username, cell);
-    this.updateCellSize();
+    
+    // Only update cell size once at the end
+    if (!container) {
+      this.updateCellSize();
+    }
   }
 
   // Highlight existing member
@@ -579,22 +771,23 @@ class MosaicUI {
     const cellCount = this.elements.wall.children.length;
     if (cellCount === 0) return;
 
-    const gap = 2;
+    const gap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--gap'));
     const footerHeight = document.getElementById('footer').offsetHeight;
     const controlsHeight = document.getElementById('controls').offsetHeight;
     const availableHeight = window.innerHeight - footerHeight - controlsHeight - 40;
     const availableWidth = window.innerWidth - 20;
 
-    let bestSize = 100;
+    let bestSize = 40;
     
-    for (let cols = 1; cols <= Math.min(cellCount, 20); cols++) {
+    for (let cols = 1; cols <= Math.min(cellCount, 30); cols++) {
       const rows = Math.ceil(cellCount / cols);
       const cellWidth = Math.floor((availableWidth - gap * (cols + 1)) / cols);
       const cellHeight = Math.floor((availableHeight - gap * (rows + 1)) / rows);
       bestSize = Math.max(bestSize, Math.min(cellWidth, cellHeight));
     }
 
-    bestSize = Math.min(bestSize, 300); // Maximum size
+    bestSize = Math.min(bestSize, 80); // Maximum size
+    bestSize = Math.max(bestSize, 35); // Minimum size
     document.documentElement.style.setProperty('--cell-size', bestSize + 'px');
   }
 }
@@ -602,6 +795,16 @@ class MosaicUI {
 // =============================================================================
 // INITIALIZATION
 // =============================================================================
+
+// Add fade-in animation CSS
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.8) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+`;
+document.head.appendChild(style);
 
 // Initialize the application
 const mosaicUI = new MosaicUI();
